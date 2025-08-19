@@ -329,29 +329,12 @@ router.post("/analyze", authenticateToken, async (req: AuthRequest, res) => {
     console.log("Edited ingredients:", editedIngredients.length);
     console.log("Update text:", updateText ? "provided" : "not provided");
 
-    // Validate request data
-    const analysisSchema = z.object({
-      imageBase64: z.string().min(1, "Image data is required"),
-      language: z.string().default("english"),
-      date: z.string().optional(),
-      updateText: z.string().optional(),
-      editedIngredients: z.array(z.any()).default([]),
-    });
-
-    const validatedData = analysisSchema.parse({
-      imageBase64,
-      language,
-      date,
+    const result = await NutritionService.analyzeMeal(req.user.user_id, {
+      imageBase64: cleanBase64,
+      language: language || "english",
+      date: date || new Date().toISOString().split("T")[0],
       updateText,
       editedIngredients,
-    });
-
-    const result = await NutritionService.analyzeMeal(req.user.user_id, {
-      imageBase64: validatedData.imageBase64,
-      language: validatedData.language,
-      date: validatedData.date || new Date().toISOString().split("T")[0],
-      updateText: validatedData.updateText,
-      editedIngredients: validatedData.editedIngredients,
     });
 
     console.log("✅ Analysis completed successfully");
@@ -371,13 +354,19 @@ router.post("/analyze", authenticateToken, async (req: AuthRequest, res) => {
       "Analysis failed. Please check your image and try again.";
     let statusCode = 500;
 
-    if (error.message?.includes("timeout")) {
+    if (error.message?.includes("timeout") || error.message?.includes("408")) {
       errorMessage =
         "Analysis is taking too long. Please try with a clearer image.";
       statusCode = 408;
     } else if (error.message?.includes("Image data is required")) {
       errorMessage = "Please provide a valid image.";
       statusCode = 400;
+    } else if (error.message?.includes("Invalid base64")) {
+      errorMessage = "Invalid image format. Please try a different image.";
+      statusCode = 400;
+    } else if (error.message?.includes("OpenAI")) {
+      errorMessage = "AI analysis temporarily unavailable. Please try again later.";
+      statusCode = 503;
     } else if (error.message) {
       errorMessage = error.message;
     }

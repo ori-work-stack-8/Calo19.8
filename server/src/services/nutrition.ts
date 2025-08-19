@@ -89,21 +89,32 @@ export class NutritionService {
       data.editedIngredients?.length || 0
     );
 
-    // Perform AI analysis with timeout and proper error handling
-    const analysis = await Promise.race([
-      OpenAIService.analyzeMealImage(
+    // Perform AI analysis with proper error handling
+    let analysis;
+    try {
+      analysis = await OpenAIService.analyzeMealImage(
         cleanBase64,
         language,
         data.updateText,
         data.editedIngredients
-      ),
-      new Promise<never>((_, reject) =>
-        setTimeout(
-          () => reject(new Error("Analysis timeout after 60 seconds")),
-          60000
-        )
-      ),
-    ]);
+      );
+    } catch (error: any) {
+      console.error("💥 OpenAI analysis failed:", error);
+      
+      // Check if it's a timeout or API error
+      if (error.message?.includes("timeout") || error.status === 408) {
+        throw new Error("Analysis timeout. Please try with a clearer, smaller image.");
+      } else if (error.status === 400) {
+        throw new Error("Invalid image data. Please try a different image.");
+      } else if (error.status === 429) {
+        throw new Error("AI service temporarily busy. Please try again in a moment.");
+      } else if (error.status === 500) {
+        throw new Error("AI service temporarily unavailable. Please try again later.");
+      }
+      
+      // For any other error, re-throw with a user-friendly message
+      throw new Error("Analysis failed. Please try with a clearer image.");
+    }
 
     console.log("✅ Analysis completed successfully");
     console.log("📊 Analysis result:", {
@@ -151,26 +162,6 @@ export class NutritionService {
           fiber: Number(ingredient.fiber_g || 0),
           sugar: Number(ingredient.sugar_g || 0),
           sodium_mg: Number(ingredient.sodium_mg || 0),
-          cholesterol_mg: Number(ingredient.cholesterol_mg || 0),
-          saturated_fats_g: Number(ingredient.saturated_fats_g || 0),
-          polyunsaturated_fats_g: Number(
-            ingredient.polyunsaturated_fats_g || 0
-          ),
-          monounsaturated_fats_g: Number(
-            ingredient.monounsaturated_fats_g || 0
-          ),
-          omega_3_g: Number(ingredient.omega_3_g || 0),
-          omega_6_g: Number(ingredient.omega_6_g || 0),
-          soluble_fiber_g: Number(ingredient.soluble_fiber_g || 0),
-          insoluble_fiber_g: Number(ingredient.insoluble_fiber_g || 0),
-          alcohol_g: Number(ingredient.alcohol_g || 0),
-          caffeine_mg: Number(ingredient.caffeine_mg || 0),
-          serving_size_g: Number(ingredient.serving_size_g || 0),
-          glycemic_index: ingredient.glycemic_index || null,
-          insulin_index: ingredient.insulin_index || null,
-          vitamins_json: ingredient.vitamins_json || {},
-          micronutrients_json: ingredient.micronutrients_json || {},
-          allergens_json: ingredient.allergens_json || {},
         };
       }
     );

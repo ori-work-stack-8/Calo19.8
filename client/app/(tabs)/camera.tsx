@@ -34,7 +34,7 @@ import { router } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import {
   Camera,
-  Image as ImageIcon,
+  CameraIcon,
   Send,
   Edit3,
   Trash2,
@@ -292,6 +292,7 @@ export default function CameraScreen() {
     try {
       const result = await ImagePicker.launchCameraAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [4, 3],
         quality: 0.8,
@@ -323,7 +324,7 @@ export default function CameraScreen() {
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: [ImagePicker.MediaType.Images],
         allowsEditing: true,
         aspect: [4, 3],
         quality: 0.8,
@@ -335,6 +336,7 @@ export default function CameraScreen() {
         setSelectedImage(imageUri);
         resetAnalysisState();
         setShowResults(false); // Close the results modal if it was open
+          language: "hebrew",
       }
     } catch (error) {
       console.error("Gallery error:", error);
@@ -390,6 +392,7 @@ export default function CameraScreen() {
           : "Please identify ALL ingredients in this meal with complete nutritional information for each ingredient including calories, protein, carbs, fat, fiber, sugar, and sodium content.") ||
         "";
 
+          language: "hebrew",
       const result = await dispatch(analyzeMeal(analysisParams));
 
       if (analyzeMeal.fulfilled.match(result)) {

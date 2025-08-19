@@ -32,6 +32,7 @@ export default function EditProfile({ onClose }: EditProfileProps) {
     birth_date: user?.birth_date || "",
   });
   const [date, setDate] = useState(
+        mediaTypes: [ImagePicker.MediaType.Images],
     profile.birth_date ? new Date(profile.birth_date) : new Date()
   );
   const [showPicker, setShowPicker] = useState(false);

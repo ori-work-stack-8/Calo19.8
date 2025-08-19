@@ -60,6 +60,7 @@ import {
   Eye,
   ChevronDown,
   ChevronUp,
+  Image as ImageIcon,
 } from "lucide-react-native";
 import { useMealDataRefresh } from "@/hooks/useMealDataRefresh";
 import { useColorScheme } from "@/hooks/useColorScheme";
@@ -336,7 +337,6 @@ export default function CameraScreen() {
         setSelectedImage(imageUri);
         resetAnalysisState();
         setShowResults(false); // Close the results modal if it was open
-          language: "hebrew",
       }
     } catch (error) {
       console.error("Gallery error:", error);
@@ -392,7 +392,6 @@ export default function CameraScreen() {
           : "Please identify ALL ingredients in this meal with complete nutritional information for each ingredient including calories, protein, carbs, fat, fiber, sugar, and sodium content.") ||
         "";
 
-          language: "hebrew",
       const result = await dispatch(analyzeMeal(analysisParams));
 
       if (analyzeMeal.fulfilled.match(result)) {
@@ -2199,6 +2198,12 @@ export default function CameraScreen() {
       nutritionSubtitle: {
         fontSize: 14,
         color: colors.textSecondary,
+      },
+      nutritionGrid: {
+        flexDirection: "row",
+        flexWrap: "wrap",
+        gap: 12,
+        marginBottom: 16,
       },
       nutritionCard: {
         flex: 1,

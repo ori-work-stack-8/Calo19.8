@@ -311,6 +311,10 @@ export const analyzeMeal = createAsyncThunk(
         errorMessage = "Authentication error - please log in again";
       } else if (errorMessage.includes("500")) {
         errorMessage = "Server error - please try again later";
+      } else if (errorMessage.includes("408") || errorMessage.includes("timeout")) {
+        errorMessage = "Analysis timeout - please try with a clearer, smaller image";
+      } else if (errorMessage.includes("503")) {
+        errorMessage = "AI service temporarily unavailable - please try again later";
       }
 
       return rejectWithValue(errorMessage);
